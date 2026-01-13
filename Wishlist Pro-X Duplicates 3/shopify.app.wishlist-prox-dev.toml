@@ -1,0 +1,38 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+client_id = "4afa214c3a9133d35c7626a2fb93fabf"
+application_url = "https://beautiful-plant-internal-hits.trycloudflare.com"
+embedded = true
+name = "Wishlist ProX [DEV]"
+handle = "wishlist-prox-dev"
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "write_customers,read_customers,write_themes,read_online_store_navigation,write_online_store_navigation,read_themes,write_products,read_products,write_orders,read_orders,write_pixels,read_online_store_pages,read_inventory,read_locations"
+
+[auth]
+redirect_urls = [
+  "https://beautiful-plant-internal-hits.trycloudflare.com/auth/callback",
+  "https://beautiful-plant-internal-hits.trycloudflare.com/auth/shopify/callback",
+  "https://beautiful-plant-internal-hits.trycloudflare.com/api/auth/callback"
+]
+
+[webhooks]
+api_version = "2025-01"
+
+  [[webhooks.subscriptions]]
+  topics = [ "app/uninstalled" ]
+  uri = "/webhooks/app/uninstalled"
+
+[app_proxy]
+url = "https://beautiful-plant-internal-hits.trycloudflare.com/app/wishlistProX"
+subpath = "wishlist-prox-app-proxy"
+prefix = "apps"
+
+[pos]
+embedded = false
+
+[build]
+dev_store_url = "app-demo-store-25.myshopify.com"
+automatically_update_urls_on_dev = true
+include_config_on_deploy = true

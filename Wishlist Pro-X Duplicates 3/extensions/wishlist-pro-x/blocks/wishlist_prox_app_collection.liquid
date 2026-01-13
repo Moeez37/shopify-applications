@@ -1,0 +1,643 @@
+
+<span class="wishlist-prox-heart-btn wishlist-prox-heart-btnDisabled" aria-label="Add to Wishlist">
+    <svg class="wishlist-proX-heartSVG" viewBox="0 0 24 24" stroke-width="2" stroke="#fff" fill="none">
+        <path d="M12 21.35l-1.45-1.32C5.4 15.73 2 12.27 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.77-3.4 7.23-8.55 11.53L12 21.35z"/>
+    </svg>
+</span>
+
+<div class="wishlist-prox-message"></div>
+
+
+<script>
+    let collectionProdcutCardSelectors = [
+        '#product-grid',
+        '#ProductsList',
+        'div.new-grid.collection-grid',
+        'div.collection-grid__row',
+        'section#js-results',
+        'div.grid-cols-2',
+        '.products.js-product-grid',
+        '#collectionProductGrid',
+        'div.collection.collection--asymmetrical',
+        'div.collection__grid',
+        'div.collection__grid-wrapper.js-grid-wrapper',
+        '.collection__items.js-grid-wrapper',
+        '#ShopProductsGrid',
+
+        '.product-grid',
+        '.product-listing-item',
+        '.product-listing-cards',
+        '[id^="product-list-template-"]', // product-list-template--24098237907224__main   //'product-list-template-',   //'product-list',
+        '.grid.grid--uniform',
+        '.card-grid', // '#ProductGridContainer',
+        '#CollectionLoop',
+        'div[class*="product-list__inner"]',
+        '#collection',
+        '.grid.grid--empty-items-2',
+        '.productgrid--items',
+        '.product-list.product-list--per-row-4',
+        '.grid-flex.large-row',
+        '.product-list.product-list--rows.grid--uniform',
+        '.blocklayout',
+        'product-list.product-list',
+        '.product-list--collection',
+        '.collection-products.rows-of-4',
+        '.product-list.row-of-3',
+        '.collection-page__product-list',
+        '.collection-products.products-per-row-2',
+        'div[class*="js-grid"]',
+        'ul[class*="grid"]',
+        '.collection-page__list',
+        '.main-collection--grid',
+        'div.product-loop.grid__wrapper',
+        '#main-collection-product-grid',
+        'div.collection__products',
+        'div.collection-product-grid__products',
+        'div.collection__cards.o-layout',
+
+                          
+        // '#main-collection-product-grid .product-grid-border-fix', //Split
+        // 'div.container > div.one-third' //Responsive
+    ];
+
+    let featuredProductsSelectors = [
+        '[id^="Slider-template-"]',
+    ];
+
+
+    let shop = "{{ shop.permanent_domain }}";
+    let pathname = window.location.pathname;
+    let href = window.location.href;
+    // console.log("pathname :", pathname);
+    // console.log("href :", href);
+
+    let isCollectionPage = isCollectionURL(pathname, href);
+    // console.log("isCollectionPage :", isCollectionPage);
+    
+    let isHomePage = isHomeURL(pathname, href);
+    // console.log("isHomePage :", isHomePage);
+
+
+    document.addEventListener("DOMContentLoaded", () => {
+        //-------------------------------------------------------------------------------
+        // Reference: https://javascript.info/mutation-observer 
+
+        // Select the node that will be observed for mutations - Here is body
+        const targetNode = document.querySelector('body');
+
+        // Options for the observer (which mutations to observe)
+        const config = { attributes: true, childList: true, subtree: true };
+
+        // Callback function to execute when mutations are observed
+        const observerCallback  = function(mutationsList, observer) {
+            for (let mutation of mutationsList) {
+                // console.log("mutation :", mutation);
+                // console.log("mutation.target :", mutation.target);
+
+                // Handling Heart Icon on Products in Collection
+                if (mutation.type === 'childList' && mutation.target.classList.contains('wishlistedBlock') ) {
+                    console.log("=====> Change detected in wishlistedBlock");
+                    
+                    observer.disconnect();
+                    
+                    renderCollectionProductCards();
+                    
+                    observer.observe(targetNode, config);
+
+                    break;
+                }
+            }
+        };
+
+        // Create an observer instance linked to the callback function
+        const observer = new MutationObserver(observerCallback);
+
+        // Start observing the target node by attaching it to DOM node
+        observer.observe(targetNode, config);
+
+        // Disconnect obeserver? If disconnect then it will stop after executing, keep observing...
+        // observer.disconnect();
+        //---------------------------------------------------------------------
+        
+        // COLLECTION RENDERING 
+        if(isCollectionPage) {
+            console.log("RENDERING DESIRED PAGE");
+            // render on initial page load
+            renderCollectionProductCards();
+        };
+
+        if(isHomePage) {
+            renderingFearturedPorductCards();
+        }
+    });
+    // ----------------------------------------------------------------------
+
+    function renderCollectionProductCards() {
+        // console.log("IN CCCCCCCCCCCCCCC");
+        const productGrid = findCollectionProductCard(collectionProdcutCardSelectors);
+        console.log("productGrid GG :", productGrid);
+        if(productGrid) {
+            let current_collection_products = {{ collection.products | json }};
+            // console.log("current_collection_products :", current_collection_products);
+            addHeartIcon(productGrid, current_collection_products);
+        }
+    };
+    
+    function renderingFearturedPorductCards() {
+        const featuredProducts = findCollectionProductCard(featuredProductsSelectors);
+        console.log("featuredProducts :", featuredProducts);
+        if(featuredProducts) {
+            let featured_collection_products = {{ collections.all.products | json }};
+            // console.log("featured_collection_products :", featured_collection_products);            
+            addHeartIcon(featuredProducts, featured_collection_products);
+        }
+    };
+
+    // Function to find Collection Product Cards
+    function findCollectionProductCard(selectorsArray) {
+        // console.log("IN findCollectionProduct Card function");
+        // console.log("selectorsArray :", selectorsArray);
+        let relativeElementsArray = [];
+
+        for(let selector of selectorsArray) {
+            // console.log("selector :", selector);
+
+            // if(selector == 'div.collection__grid') {
+            //     let elements = document.querySelectorAll(selector);
+            //     console.log("elements 000 :", elements);
+            //     return elements;
+            //     // if (elements.length > 0) {
+            //     //     relativeElementsArray.push(...elements);
+            //     // }
+            // }
+            // if(relativeElementsArray.length > 0) {
+            //     return relativeElementsArray;
+            // }
+
+
+            let element = document.querySelector(selector);
+            // console.log("element :", element);
+                
+            if(element) {
+                return element;
+            }
+        }
+
+        return null;
+        // collectionProdcutCardSelectors
+
+        // selectorsArray.forEach((selector) => {
+        //     console.log("selector :", selector);
+        //     let elements = document.querySelectorAll(selector);
+        //     console.log('elements :', elements);
+        //     if(elements.length > 0) {
+        //         return elements;
+        //     };
+        // });
+    };
+
+
+    // Function to add heart icon to product cards
+    function addHeartIcon(productGrid, collectionProducts) {
+        const indices = findCollectionIndices(collectionProducts); 
+        // console.log("indices :", indices);
+
+        // if(indices.length < 1) {
+        //     return;
+        // }
+
+        const heartTemplate = document.querySelector('.wishlist-prox-heart-btn');
+        // console.log("heartTemplate :", heartTemplate);
+
+        // Select all product items inside the grid
+        const productItems = productGrid.children; 
+
+        Array.from(productItems).forEach((item, index) => {
+            // console.log("index :", index);
+            // console.log("item :", item);
+            
+            const proX_SvgElement = item.querySelector('.wishlist-proX-heartSVG');
+            // console.log("proX_SvgElement :", proX_SvgElement);
+
+            if (proX_SvgElement) {
+                // console.log("heart icon exists on index :", index);
+
+                if(indices.includes(index) && !proX_SvgElement.classList.contains('wishlist-proX-heartSVG-Wishlisted')) {
+                    // console.log("ADDING");
+                    proX_SvgElement.classList.add('wishlist-proX-heartSVG-Wishlisted');
+                
+                } else if(!indices.includes(index) && proX_SvgElement.classList.contains('wishlist-proX-heartSVG-Wishlisted')) {
+                    // console.log("REMOVING");
+                    proX_SvgElement.classList.remove('wishlist-proX-heartSVG-Wishlisted');
+                }
+                
+                return; 
+            }
+
+
+            let Heart_X = heartTemplate.cloneNode(true);
+            // console.log("Heart_X :", Heart_X);
+            
+            if(Heart_X) {
+                // console.log("IIIIIIIIIIIIIII");
+                Heart_X.id = `wishlist-proX-heart-btn-${index}`;
+                Heart_X.classList.remove('wishlist-prox-heart-btnDisabled');
+                Heart_X.classList.add('wishlist-prox-heart-btnEnabled');
+            } else {
+                // console.log("EEEEEEEEEEEEEE");
+                Heart_X = document.createElement('span');
+                Heart_X.id = `wishlist-proX-heart-btn-${index}`;
+                Heart_X.classList.add('wishlist-prox-heart-btnEnabled');
+                Heart_X.setAttribute('aria-label', 'Add to Wishlist');
+                Heart_X.innerHTML = `
+                    <svg class="wishlist-proX-heartSVG" viewBox="0 0 24 24" stroke-width="2" stroke="#fff" fill="none">
+                        <path d="M12 21.35l-1.45-1.32C5.4 15.73 2 12.27 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.77-3.4 7.23-8.55 11.53L12 21.35z"/>
+                    </svg>
+                `;
+            }
+            
+            Heart_X.addEventListener('click', function(event) {
+                event.preventDefault();
+                event.stopPropagation();
+                event.stopImmediatePropagation();
+
+                handleCollectionProductToggle(this, index, collectionProducts);
+            });
+
+            item.style.position = 'relative'; // Ensure the item has relative positioning
+            item.appendChild(Heart_X);
+
+            setTimeout(() => {
+                if(indices.includes(index)) {
+                    const proX_SvgElement = item.querySelector('.wishlist-proX-heartSVG');    
+                    if(proX_SvgElement) {
+                        proX_SvgElement.classList.add('wishlist-proX-heartSVG-Wishlisted');
+                    }
+                }
+            }, 1100);
+        });
+    };
+
+    // Function to handle Toggle
+    function handleCollectionProductToggle(element, itemIndex, collectionProducts) {
+        // console.log("element :", element);
+        // console.log("itemIndex :", itemIndex);
+        // console.log("collectionProducts :", collectionProducts);
+
+        const proX_SvgElement = element.querySelector('.wishlist-proX-heartSVG');
+        // console.log("proX_SvgElement :", proX_SvgElement);
+
+        let productData;
+        let productId;
+        
+        collectionProducts.forEach((product, index) => {
+            // console.log("index :", index);
+            if(itemIndex === index) {
+                // console.log("product :", product);
+
+                const productProce = `$${(product.price / 100).toFixed(2)}`;
+                // console.log("productProce :", productProce);
+
+                const productVariants = product.variants;
+
+                productData = {
+                    productId: product.id,
+                    productTitle: product.title,
+                    productImg: product.featured_image,
+                    productPrice: productProce,
+                    productUrl: `/products/${product.handle}`,
+                    variantId: productVariants[0]?.id,
+                }
+
+                productId = product.id;
+            }
+        });
+        // console.log("Collection productData :", productData);
+
+        if(proX_SvgElement) {
+            if(proX_SvgElement.classList.contains('wishlist-proX-heartSVG-Wishlisted')) {
+                // console.log("11111111111");
+                proX_SvgElement.classList.remove('wishlist-proX-heartSVG-Wishlisted');
+                removeCPFromWishlistLocalStorage(productData);
+            } else {
+                // console.log("2222222222");
+                proX_SvgElement.classList.add('wishlist-proX-heartSVG-Wishlisted');
+                addCPToWishlistLocalStorage(productData, productId);
+            }
+        } else {
+            console.log('X HEART SVG NOT FOUND! X');
+        }
+    };
+
+
+    // Function to add item to local storage
+    function addCPToWishlistLocalStorage(productData, productId) {
+        let wishlistData = getWishlistDataFromLocalStorage();
+        // console.log("wishlistData - ADD:", wishlistData);
+
+        const isAlreadyInWishlist = wishlistData.some(item => item.productTitle === productData.productTitle);
+        console.log("isAlreadyInWishlist :", isAlreadyInWishlist);
+
+        if (!isAlreadyInWishlist) {
+            wishlistData.push(productData);
+            localStorage.setItem('wishlistProX', JSON.stringify(wishlistData));
+            // alert('Product added to wishlist:', productData.productTitle);
+        }
+
+        addToDatabase(productId, 'CREATE');
+    };
+
+    
+    async function addToDatabase(productId, _action) {
+        // console.log("productId :", productId);
+        // console.log("shop :", shop);
+        // console.log("action :", _action);
+
+        if(!shop || !productId) {
+            return;
+        }
+
+        let appUrl = "http://localhost:58013/"; //[DEV] 
+        // let appUrl = "https://wishlist-pro-x.fly.dev/"; 
+
+
+        let formdata = new FormData();
+        formdata.append("productId", productId);
+        formdata.append("shop", shop || "{{ shop.permanent_domain }}");
+        formdata.append("_action", _action);
+    
+        const requestOptions = {
+            method: "POST",
+            body: formdata,
+            redirect: "follow"
+        };
+    
+        await fetch(appUrl + 'api/wishlist-pro-x', requestOptions)
+        .then((response) => response.text())
+        .then((result) => {
+            // console.log("result :", result);
+            // this.wishlisted = !this.wishlisted;
+            
+            const parsedJSON = JSON.parse(result);
+            const method = parsedJSON.method || 'ADD';
+            // console.log("method :", method);
+
+            displayMessage(method == 'CREATE' ? 'ADD' : method );
+        })
+        .catch((error) => console.error('error', error));
+    };
+
+    // Function to display message 
+    function displayMessage(status) {
+        let msgElement = document.querySelector('.wishlist-prox-message');
+        // console.log("msgElement :", msgElement);
+
+        if(!msgElement) {
+            msgElement = document.createElement('div');
+            msgElement.classList.add('wishlist-prox-message');
+            document.body.appendChild(msgElement);
+        }
+
+        let message = '';
+
+        if(status === 'ADD') {
+            message = "✅ Product added to wishlist!";
+        } else if (status === 'REMOVE') {
+            message = "❌ Product removed from wishlist!";
+        }
+
+        msgElement.innerHTML = `<h2>${message}</h2>`;
+        msgElement.classList.add("show");
+
+        // Hide message after 3 seconds
+        setTimeout(() => {
+            msgElement.classList.remove("show");
+        }, 2000);
+    };
+
+
+    // Function to Remove from Local Storage 
+    function removeCPFromWishlistLocalStorage(productData) {
+        // console.log("productData :", productData);
+
+        let wishlistData = getWishlistDataFromLocalStorage();
+        // console.log("wishlistData - REMOVED:", wishlistData);
+
+        wishlistData = wishlistData.filter(item => item.productTitle !== productData.productTitle);
+        localStorage.setItem('wishlistProX', JSON.stringify(wishlistData));
+        displayMessage('REMOVE');
+        
+        if(productData?.productId) {
+            addToDatabase(productData.productId, 'REMOVE');
+        }
+    };
+
+    // Function to get items from local storage
+    function getWishlistDataFromLocalStorage() {
+        let wishlistData = JSON.parse(localStorage.getItem('wishlistProX')) || [];
+        // console.log("wishlistData - GET :", wishlistData);
+        return wishlistData;
+    };
+
+    // Function to find Collection Page
+    function isCollectionURL(pathName = "", href = "") {
+        // console.log("IN isCollection URL function");
+        try {
+            let isCollection = pathname.includes('/collections/') || /\/collections\/[^/]+/.test(href);
+            // console.log("isCollection 11:", isCollection);
+            return isCollection;
+        } catch (error) {
+            console.error("Invalid URL:", error);
+            return false;
+        }
+    };
+    
+    // Function to find Home Page 
+    function isHomeURL(pathName = "", href = "") {
+        try {
+            const url = new URL(href);
+            return pathname === '/' && url.pathname === '/';
+        } catch (error) {
+            console.error("Invalid URL:", error);
+            return false;
+        }
+    };
+
+
+    // Function to find indices
+    function findCollectionIndices(collectionProducts) {
+        if (!Array.isArray(collectionProducts)) {
+            return [];
+        }
+
+        let wishlistLocalStorage = getWishlistDataFromLocalStorage();
+        return wishlistLocalStorage.map(wishlistItem => 
+            collectionProducts.findIndex(cProduct => cProduct.title === wishlistItem.productTitle)
+        ).filter(index => index != -1);
+    };
+
+
+
+// This will give Card Link easily
+// let productLink = item.querySelector("a.full-unstyled-link");
+// console.log("productLink :", productLink);
+
+// Functionality to find cart option
+// const targetPositions = $(targetCartSelectors.join(",")).filter((index, element) => {
+//  console.log("elements in loop:", element);
+//  return $(element).is(":visible");
+// });
+// console.log("targetPositions :", targetPositions);
+</script>
+
+
+
+
+
+
+
+{% comment %} 
+target: Where the block is located. The possible values are section, head, compliance_head, and 
+body. The value for app blocks is section. The values for app embed blocks are head, compliance_head & body. 
+{% endcomment %}
+{% schema %}
+    {
+        "name": "Wishlist Collections",
+        "target": "body",
+        "settings": [
+            {
+                "type": "color",
+                "id": "heart_stroke_color",
+                "label": "Heart Stroke Color (Outline)",
+                "default": "#ff0000"
+            },
+            {
+                "type": "color",
+                "id": "heart_fill_color",
+                "label": "Heart Fill Color (When Wishlisted)",
+                "default": "#ff0000"
+            },
+            {
+                "type": "select",
+                "id": "heart_position",
+                "label": "Heart Position",
+                "default": "top-right",
+                "options": [
+                    { "value": "top-left", "label": "Top Left"},
+                    { "value": "top-right", "label": "Top Right"},
+                    { "value": "left-center", "label": "Left Center"},
+                    { "value": "right-center", "label": "Right Center"},
+                    { "value": "bottom-right", "label": "Bottom Right"},
+                    { "value": "bottom-left", "label": "Bottom Left"}
+                ]
+            },
+            {
+                "type": "number",
+                "id": "heart_z_index",
+                "label": "Heart Icon Z-Index",
+                "default": 2000,
+                "info": "Set a custom z-index value (e.g., 1-9999)"
+            }
+        ]
+    }
+{% endschema %}
+
+
+<style>
+.wishlist-prox-heart-btnDisabled {
+    display: none;
+    position: absolute;
+    top: 7px;
+    right: 7px;
+    cursor: pointer;
+    border-radius: 5px;
+    height: 3rem;
+    width: 3rem;
+    z-index: 10;
+}
+
+.wishlist-prox-heart-btnEnabled {
+    display: block;
+    position: absolute;
+    /* top: 7px;
+    right: 7px; */
+    cursor: pointer;
+    border-radius: 5px;
+    height: 3rem;
+    width: 3rem;
+    z-index: {{ block.settings.heart_z_index }};
+
+    {% case block.settings.heart_position %}
+        {% when "top-left" %}
+            top: 5px;
+            left: 3px;
+        {% when "top-right" %}
+            top: 7px;
+            right: 7px;
+        {% when "left-center" %}
+            top: 50%;
+            left: 7px;
+            transform: translateY(-50%);
+        {% when "right-center" %}
+            top: 50%;
+            right: 7px;
+            transform: translateY(-50%);
+        {% when "bottom-left" %}
+            bottom: 7px;
+            left: 7px;
+        {% when "bottom-right" %}
+            bottom: 7px;
+            right: 7px;
+    {% endcase %}
+}
+
+.wishlist-proX-heartSVG {
+    position: relative;
+    fill: none;
+    /* stroke: #ff0000; */
+    stroke: {{ block.settings.heart_stroke_color }};
+    width: 1.5rem;
+    height: 1.5rem;
+    float: right;
+}
+
+.wishlist-proX-heartSVG-Wishlisted {
+    /* fill: #ff0000; */
+    /* stroke: #ff0000; */
+    fill: {{ block.settings.heart_fill_color }};
+    stroke: {{ block.settings.heart_fill_color }};
+    transition: color 0.3s ease-in-out;
+}
+
+.wishlist-prox-message {
+    /* position: absolute; */
+    /* left: -100%; */
+    position: fixed;
+    top: 5%;
+    left: 8%;
+    transform: translateX(-50%); 
+    width: auto;
+    height: auto;
+    padding: 10px 20px;
+    background: #000;
+    color: #fff;
+    border-radius: 1rem;
+    z-index: 9999;
+    opacity: 0;
+    text-align: center;
+    transition: opacity 0.5s ease-in-out;
+    /* transition: left 1s ease-in-out, opacity 1s ease-in-out; */
+}
+
+.wishlist-prox-message.show {
+    /* left: 0;*/
+    opacity: 1;
+}
+
+.wishlist-prox-message h2 {
+    font-size: 15px;
+    font-weight: bold; 
+    color: #fff;
+}
+</style>
+

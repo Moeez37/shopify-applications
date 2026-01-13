@@ -1,0 +1,38 @@
+# fly.toml app configuration file generated for wishlist-pro-x on 2025-03-05T19:49:25+05:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'wishlist-pro-x'
+primary_region = 'sin'
+
+[build]
+
+[env]
+  PORT = '3000'
+  SCOPES = 'read_customers,read_inventory,read_locations,read_online_store_navigation,read_online_store_pages,read_orders,read_products,read_themes,write_customers,write_online_store_navigation,write_orders,write_pixels,write_products,write_themes'
+  SHOPIFY_API_KEY = 'e19e19721d52e7e139f079930085f9ed'
+  SHOPIFY_APP_URL = 'https://wishlist-pro-x.fly.dev'
+
+[processes]
+  app = 'node ./dbsetup.js npm run docker-start'
+
+[[mounts]]
+  source = 'data'
+  destination = '/data'
+  auto_extend_size_threshold = 80
+  auto_extend_size_increment = '1GB'
+  auto_extend_size_limit = '10GB'
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = 'stop'
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ['app']
+
+[[vm]]
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 1

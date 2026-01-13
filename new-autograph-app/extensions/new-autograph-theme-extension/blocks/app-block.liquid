@@ -1,0 +1,606 @@
+{% schema %}
+  {
+    "name": "New Autograph",
+    "target": "section",
+    "stylesheet": "app-block.css",
+    "settings": []
+}
+{% endschema %}
+
+
+<div id="app-block-unique-CustomId">
+  <form method="post" action="/cart/add" id="autograph-block_product-form-{{ product.id }}" class="autograph-block-product-form" enctype="multipart/form-data">
+    {%- if product.metafields.custom.add_autograph == true -%}
+      {% assign autograph_price = product.metafields.custom.add_autograph_price.value  %}
+
+      <div class="product-form__custom-fields">
+        <label for="autograph-checkbox" class="form__custom__label">
+          Streamily Autograph Block
+        </label>
+
+        <div class="block-toggle-prize-div">
+          <label class="toggle-block-switcher">
+            <input type="checkbox" id="autograph-checkbox" class="product-form__block-checkbox" name="properties[Autograph Product]" value="Yes">
+            <span class="appBlockCheckbox-toggleSlider" style="--unchecked-color: #ccc; --checked-color: #212121;"></span>
+          </label>
+          {% if autograph_price >= 0 %}
+            <span class="price-IsNot-Everything">+ {{ autograph_price | money }}</span>
+            {% else %}
+            <span class="price-IsNot-Everything">+ $50 </span>
+          {% endif %}
+          <div class="autograph_app_block_loading_spinner"></div>
+        </div>
+
+        <div class="autograph-app-block-error-message"></div>
+      </div>
+    {%- endif -%}
+  </form>
+</div>
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js" ></script>
+<script>
+  console.log("     --- New Autograph App Block ---    ");
+  
+  const targetCartSelectors = [
+    "button[type='submit'][name='add']", 
+    "div.shopify-payment-button", 
+    ".product__submit__item:has(button.product__submit__add[type='submit'][name='add'])",
+    ".purchase-details__buttons",
+    "button[type='button'][name='add']",
+    "button[type='submit'][data-action='add-to-cart']",
+    "button.add-cart-button[type='submit'][name='add'][aria-controls='Cart-Drawer']",
+    "input[type='submit'][name='button']",
+    "input[type='submit'][name='add']",
+    "input.add-to-cart",
+    "#addToCart",
+    ".pro_dtl_btn",
+    "div.quantity-submit-row__submit > button[type='submit']",
+    "a.add-to-cart",
+    ".buy-buttons",
+    "buy-buttons",
+    "product-payment-container#MainPaymentContainer",
+    "button.product-form--atc-button[type='submit']",
+    "button.product-buy-buttons--cta",
+    "button.productForm-submit",
+    "button.product-submit",
+    "button.addtocart-button-active",
+    "div.tt-row-custom-01",
+    "div.product-cart-action",
+    "#ProductSubmitButton-template--19243275583776__main",
+    ".spice-submit-button",
+    "#shopify_add_to_cart",
+    ".engoj-btn-addtocart",
+    "#zooomybackinstock",
+    ".atc-btn-container",
+    ".button--addToCart",
+    "#addToCartButton",
+    "button.add-to-cart",
+    "button[type='submit'].ecom-product-single__add-to-cart--submit",
+    ".buy-buttons__buttons",
+    "div.form-actions > .button[data-product-add]",
+    "div.Cart__Recap",
+    "button.product__add-to-cart-button",
+    "product-buy-buttons-element",
+    "button[type='submit'].add-to-cart-btn",
+  ];
+
+
+  const targetIconCartSelector = [
+    'div a.header__icon[href="/cart"]',
+    'div.header__icon a[href="/cart"]',
+    '#cart-icon-bubble',
+    'a[href="/cart"][aria-controls="cart-drawer"]',
+    'a[href="/cart"][aria-controls="CartDrawer"]',
+    '#cart-icon-bubble',
+    'a.relative[aria-controls="cart-drawer"]',
+    'a[aria-controls="CartDrawer"]',
+    'a.site-nav__link[aria-controls="CartDrawer"]',
+    'li.relative > a[aria-controls="cart-drawer"]',
+    '#Cart-Icon-Bubble',
+  ]
+
+  const targetCartDrawerSelector = [
+    'cart-drawer',
+    '#cart-drawer',
+    '.drawer',
+    '.cart-drawer',
+    '[data-name="cart-drawer"]',
+    '[data-cart-type="drawer"]',
+    'cart-notification',
+    '#cart-notification',
+    '#halo-cart-sidebar',
+    'cart-notification-drawer',
+    'div#CartDrawer',
+    '#Cart-Drawer'
+  ]
+
+  const autographGiftWrapHandle = 'autograph-gift-wrap-handle';
+  const _pathName = window.location.pathname;
+  var autographStreamilyProduct = null;
+  let themeNamePresent = null;
+  let cartType = null;
+  
+  const currentTheme = window.theme || {};
+  const currentThemeShopify = window.Shopify || {};
+  const currentThemeSettings = {{ settings | json }};
+
+  console.log("currentTheme :", currentTheme);
+  console.log("currentThemeShopify :", currentThemeShopify);
+  console.log("currentThemeSettings :", currentThemeSettings);
+
+  if (currentTheme.length > 0) {
+    // console.log("====> Using currentTheme settings!");
+    const { settings } = currentTheme;
+    cartType = settings?.cartType || null;
+    themeNamePresent = settings?.themeName || null;
+  }
+  
+  if (currentThemeShopify && !themeNamePresent) {
+    // console.log("====> Using currentThemeShopify theme!");
+    themeNamePresent = currentThemeShopify?.theme?.schema_name || null;
+  }
+  
+  if (currentThemeSettings && !cartType) {
+    // console.log("====> Using currentThemeSettings!");
+    cartType = currentThemeSettings?.cart_type || currentThemeSettings?.after_add_to_cart || null;
+  } 
+  
+  if (!currentTheme && !currentThemeShopify && !currentThemeSettings) {
+    console.log("====> No Theme settings found for Cart type!");
+  }
+  console.log("====> cartType :", cartType);
+  console.log("====> themeNamePresent :", themeNamePresent);
+
+
+ 
+  $(document).ready( async function () {
+    if( _pathName.includes('/products')) {
+      console.log("     ==== Product Page ====     ");
+      
+      // Get Current Main Product
+      var currentProduct = {{ product | json }};
+      var currentProductTitle = currentProduct?.title;
+      var currentProductVariants = currentProduct?.variants;
+      // console.log("currentProduct :", currentProduct);
+
+      // Steamily Autograph Product 
+      if (!autographStreamilyProduct) {
+        autographStreamilyProduct = await fetchAutographProductByHandle(autographGiftWrapHandle);
+      }
+      // console.log("autographStreamilyProduct :", autographStreamilyProduct);
+      let autographGiftWrapProductTitle = autographStreamilyProduct?.title;
+      let autographGiftWrapProductVariants = autographStreamilyProduct?.variants;
+      let autographProductVariantId = null;
+      let autographProductPrice = null;
+      
+      // Checkbox, autograph Price, and loading spinner
+      const _autographCheckbox = document.querySelector('#autograph-checkbox');
+      const _autographDisplayPrice = document.querySelector('.price-IsNot-Everything');
+      const autographLoadingSpinner = document.querySelector('.autograph_app_block_loading_spinner');
+
+      // Pre fetch autograph variant data using displayed price metafield
+      if(autographGiftWrapProductVariants && _autographDisplayPrice) {
+        const displayedAutographVariantPrizeData = await fetchAutographVariantIDFromDisplayedPrize(autographGiftWrapProductVariants, _autographDisplayPrice);
+        if(displayedAutographVariantPrizeData) {
+          autographProductVariantId = displayedAutographVariantPrizeData.id;
+          autographProductPrice = displayedAutographVariantPrizeData.price;
+        }
+      }
+
+      // Functionality to get close form or add to cart button
+      let targeted_CART_ADD_BUTTON = null;
+      let clonedButton = null;
+
+      // Functionality to find cart option
+      const targetPositions = $(targetCartSelectors.join(",")).filter((index, element) => {
+        // console.log("elements in loop:", element);
+        return $(element).is(":visible");
+      });
+      console.log("targetPositions :", targetPositions);
+      
+      if (targetPositions.length > 0) {
+        targeted_CART_ADD_BUTTON = findTargetedCartOption(targetPositions);
+      }
+      console.log("targeted_CART_ADD_BUTTON 11 :", targeted_CART_ADD_BUTTON);      
+      // if(targeted_CART_ADD_BUTTON && !clonedButton) {
+      //   console.log("Initial Clonning..........");
+      //   clonedButton = targeted_CART_ADD_BUTTON.cloneNode(true);
+      // }
+
+
+      _autographCheckbox?.addEventListener('change', async function () {
+        if (this.checked) {
+          console.log("Checkbox is checked.");
+          // console.log("targeted_CART_ADD_BUTTON :", targeted_CART_ADD_BUTTON);
+          // console.log("clonedButton :", clonedButton);
+          if (!clonedButton) {
+            console.log("Cloned Cart Button!");
+            clonedButton = targeted_CART_ADD_BUTTON.cloneNode(true);
+            targeted_CART_ADD_BUTTON.replaceWith(clonedButton);
+          }
+          
+          renderEventListenerForCart(clonedButton);
+
+          if (!autographProductVariantId) {
+            const displayedAutographVariantPrizeData = await fetchAutographVariantIDFromDisplayedPrize(autographGiftWrapProductVariants, _autographDisplayPrice);
+            if (displayedAutographVariantPrizeData) {
+              autographProductVariantId = displayedAutographVariantPrizeData.id;
+              autographProductPrice = displayedAutographVariantPrizeData.price;
+            }
+          }
+        } else {
+          console.log("Checkbox is unchecked.");
+          if (clonedButton) {
+            clonedButton.replaceWith(targeted_CART_ADD_BUTTON);
+            clonedButton = null;
+          }
+        }
+      });
+      
+      
+      // Function to render event listeners on checkbox changed
+      function renderEventListenerForCart(newCartButton) {
+        console.log("newCartButton :", newCartButton);
+        
+        newCartButton.addEventListener("click", async (event) => {
+          console.log("Add TO CART Button Clicked!");
+          
+          event.preventDefault();
+          event.stopPropagation();
+          event.stopImmediatePropagation();
+          
+          autographLoadingSpinner.style.display = 'inline-block';
+          
+          // Properties for main product
+          const formatedPrice = (autographProductPrice / 100).toFixed(2);
+          const customPropertiesForMainProduct = { [`${autographGiftWrapProductTitle}`]: `$${formatedPrice}`};
+          
+          const form = newCartButton.closest('form');
+          // console.log("form :", form);
+          const formData = new FormData(form);
+          const formDataObject = Object.fromEntries(formData.entries());
+          // console.log("formDataObject :", formDataObject);
+          const mainProductCurrentVariantId = formDataObject['id'];
+          const mainProductCurrentVariantQuantity = formDataObject['quantity'];
+
+          
+          const Main_Product_dataToAdd = { 
+            items: [{ 
+                id: mainProductCurrentVariantId,
+                quantity: mainProductCurrentVariantQuantity || 1,
+                properties: customPropertiesForMainProduct
+            }]
+          };
+          // console.log("Main_Product_dataToAdd :", Main_Product_dataToAdd);
+          
+          const Autograph_Product_dataToAdd = {
+            items: [{
+                id: autographProductVariantId,
+                quantity: mainProductCurrentVariantQuantity,
+                properties: { 'Autograph Included With': currentProductTitle, 'IsVariant': mainProductCurrentVariantId },
+            }]
+          };
+          // console.log("Autograph_Product_dataToAdd :", Autograph_Product_dataToAdd);
+          
+
+          const mainProductResponse = await addItemToCart(Main_Product_dataToAdd);
+          if (mainProductResponse.success !== false) {
+            console.log('Main Product Added:', mainProductResponse);
+            
+            // Add Autograph Product to Cart
+            const autographProductResponse = await addItemToCart(Autograph_Product_dataToAdd);
+            if (autographProductResponse.success !== false) {
+              console.log('Autograph Product Added:', autographProductResponse);
+              
+              window.location.href = '/cart';
+              // await updateUIforAddedItems();
+            } else {
+              console.log('Failed to add autograph item to cart:', autographProductResponse.message);
+            }
+          } else if (mainProductResponse.data.status === 422) {
+            // Show error message if status is 422
+            const errorMsgDiv = document.querySelector('.autograph-app-block-error-message');
+            if (errorMsgDiv) {
+              errorMsgDiv.textContent = mainProductResponse.data.message;
+              errorMsgDiv.style.display = 'block';
+            } else {
+              console.log('Failed to add main item to cart:', mainProductResponse.message);
+            }
+          } else {
+            console.log('Failed to add main item to cart:', mainProductResponse.message);
+            // Handle failure (e.g., show error message to the user);
+          }
+          
+          // Uncheck the autograph checkbox after the product is added
+          _autographCheckbox.checked = false;
+          autographLoadingSpinner.style.display = 'none';
+          
+          if (newCartButton) {
+            console.log("RRRRRR Reset Cloned Button!");
+            newCartButton.replaceWith(targeted_CART_ADD_BUTTON); 
+            newCartButton = null;
+            clonedButton = null;
+          }
+        });
+      }
+
+    }
+  });
+  
+  // Function to add item to cart 
+  async function addItemToCart(formData) {
+    // console.log(" =====> Adding Item to cart! ");
+    try {
+      const response = await fetch('/cart/add.js', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+      if (response.ok) {
+        // console.log('Product added to Cart');
+        const data = await response.json();
+        return data;
+      } else {
+        console.error('Error while adding item to cart:', data);
+        return { success: false, message: 'Error while adding item to cart', data };
+      }
+    } catch (error) {
+      // console.error('Error adding item to cart during the request:', error);
+      return { success: false, message: 'Error during the request', error };
+    }
+  };
+  
+  // Function to get autograph product using handle
+  async function fetchAutographProductByHandle(handle) {
+    // console.log('Getting Autograph Product');
+    const retries = 3;
+    const delay = 1000;
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      try {
+        const response = await fetch(`/products/${handle}.js`);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const product = await response.json();
+        return product;
+      } catch (error) {
+        if (attempt === retries) {
+          throw error;
+        }
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+  }
+  
+  // Function to provide given Autograph variants Prize that displayed in widget
+  async function fetchAutographVariantIDFromDisplayedPrize(autographAllVariants, displayPriceElement) {
+    // console.log('Getting Autograph Variant Prize...');
+    if (!autographAllVariants || !displayPriceElement) return null;
+    const priceText = displayPriceElement.textContent;
+    const priceNumber = parseFloat(priceText.replace(/[^\d.-]/g, '') || '0') * 100;    
+    const matchedVariant = autographAllVariants.find(variant => variant.price === priceNumber);      
+    return matchedVariant || autographAllVariants[1];
+  }
+
+  // // Function to find themeSettings
+  // function findThemeSettings() {
+  //   console.log("Function");
+  // }
+  
+  // Function to find targetted Cart Button 
+  function findTargetedCartOption(targetPositions) {
+    console.log("IN findTargetedCartOption :", targetPositions);
+    let targettedCartOption = null;
+    
+    targetPositions.each((index, element) => {
+      // console.log('element in loop :', element);
+      
+      const elementType = element.getAttribute('type')?.trim();
+      const elementTagName = element.tagName?.toLowerCase();
+      const elementName = element?.name;
+      
+      if (elementType === 'button' || elementType === 'submit') {
+        console.log(' BUTTON/SUBMIT type element found:', element);
+        const shopifyPaymentButton = element.querySelector('.shopify-payment-button');
+        
+        if ((element.id === 'product-add-to-cart' || element.id != 'product-sticky-add-to-cart') && elementName === 'add') {
+          //Ella, 
+          if (element.id === 'product-add-to-cart') { 
+            console.log("IF product-add-to-cart ");
+            targettedCartOption = element;
+            return false;
+            
+            //Enterprice, Symmetry, 
+          } else if (element.hasAttribute('data-add-to-cart-text')) { 
+            console.log("IF data-add-to-cart-text");
+            targettedCartOption = element;
+            return false;
+            
+            // Publisher, Dawn, Be Yours, Sleek, Ignite, Woodstock, Release, 
+          } else if (element.id && (element.id.startsWith("ProductSubmitButton") || element.id.startsWith("ProductSubmitButton-template") || element.id.startsWith('card-submit-button-template') )  && element.classList.contains('product-form__submit')) { 
+            console.log("IF ProductSubmitButton");
+            targettedCartOption = element;
+            return false;
+            
+            // Broadcast, Palo Alto, Reformation, Vision, 
+          } else if (element.id && element.id.startsWith("AddToCart") ) {
+            console.log("IF Id AddToCart");
+            if(element.hasAttribute('data-add-to-cart') || element.classList.contains('single-add-to-cart-button') ) {
+              targettedCartOption = element;
+              return false;
+            }
+            
+            // Concept, Madrid, 
+          } else if(element?.getAttribute('form')?.startsWith("ProductForm-template") || element.classList.contains('product-form__submit') ) {
+            console.log("IF ProductForm-template");
+            targettedCartOption = element;
+            return false;
+            
+            // Impuls, Pipeline, Motion, Mono, Combine, Streamline, Stiletto, Local, Expanse, 
+          } else if(element?.hasAttribute('data-add-to-cart') || element.classList.contains('add-to-cart') ) {
+            console.log("IF data-add-to-cart");
+            targettedCartOption = element;
+            return false;
+            
+            // Blum, Electro, 
+          } else if(element.classList.contains('js-product-form-submit-btn') ) {
+            console.log("IF js-product-form-submit-btn");
+            
+            const closestProductForm = element.closest('.product-form__buttons'); 
+            // console.log("closestProductForm :", closestProductForm);
+            if(closestProductForm) {
+              const nearshopifyPaymentButton = closestProductForm?.querySelector('.shopify-payment-button');
+              if(nearshopifyPaymentButton) {
+                targettedCartOption = element;
+                return false;
+              }
+            }
+            
+            // Eurus, 
+          } else if(element.classList.contains('add_to_cart_button') && element.hasAttribute('@click') ) {
+            console.log("IF add_to_cart_button");
+            targettedCartOption = element;
+            return false;
+            
+            // Retina, Parallax
+          } else if((element.classList.contains('add_to_cart') && element.hasAttribute('data-product-atc')) || (element.classList.contains('ajax-submit') && element.classList.contains("add_to_cart")) ) {
+            console.log("add_to_cart");
+            targettedCartOption = element;
+            return false;
+            
+            // Split, Venue, Baseline, 
+          } else if((element.classList.contains('product__add-to-cart') && element.hasAttribute('data-js-product-add-to-cart')) || (element.classList.contains('product-form__add-btn') && element.classList.contains('js-product-add'))  ){
+            console.log("data-js-product-add-to-cart/product-form__add-btn");
+            targettedCartOption = element;
+            return false;
+            
+            // Arrora
+          } else if(element.id.startsWith('product-buy') && element.classList.contains('product-form__btn') ){
+            console.log("product-form__btn");
+            targettedCartOption = element;
+            return false;
+            
+          } else {
+            console.log('SSSSSSSSSSSSSSSSSSSSSS');
+          }
+          
+          // Warehouse, Cascade, Gain, Exhibit, Ultra, 
+        } else if(element.classList.contains('product-form__add-button') || element.classList.contains('add-to-cart-btn') || element.classList.contains('add-to-cart') ) {
+          console.log("IF product-form__add-button/add-to-cart-btn/add-to-cart");
+          targettedCartOption = element;
+          return false;
+        } else {
+          console.log(`TYPE FOUND: "${elementType}", But nOT Matched any condition!`);
+        } // inner else 
+        
+      } else if (elementTagName === 'buy-buttons') {
+        console.log('BUY-BUTTONS tag Element Found:', element);
+        
+        const buyButton = element.querySelector('button[type="submit"]');
+        const shopifyPaymentButton = element.querySelector('.shopify-payment-button');
+        
+        if (buyButton) {
+          console.log('Submit button inside Buy Buttons:', buyButton);
+          
+          //Impact, Prestige, 
+          if (element.classList.contains('buy-buttons') && shopifyPaymentButton) { 
+            console.log("IF buy-buttons and shopify-payment-button ");
+            targettedCartOption = buyButton;
+            return false;
+            
+          } else if (element.hasAttribute('data-add-to-cart-text') && shopifyPaymentButton) {
+            console.log('IF data-add-to-cart-text and shopify-payment-button')
+            targettedCartOption = element;
+            return false;
+            
+          } else {
+            console.log("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB");
+          }
+        } else {
+          console.log('Not-Submit button available:', element);
+        }
+        
+      } else if (elementTagName === 'product-payment-container') {
+        console.log('product-payment-container tag Element Found:', element);
+        
+        // Focal, 
+        const elementWithCartID = element.querySelector('#AddToCart');
+        // console.log("elementWithCartID :", elementWithCartID);
+        if(elementWithCartID) {
+          console.log('IF AddToCart');
+          targettedCartOption = elementWithCartID;
+          return false;
+        }
+      } else if (elementTagName === 'product-buy-buttons-element') {
+        console.log('product-buy-buttons-element tag Element Found:', element);
+        
+        // Blockshop, Maker
+        const elementWithCartClass = element.querySelector('.product-buy-buttons--primary');
+        // console.log("elementWithCartClass :", elementWithCartClass);
+        if(elementWithCartClass) {
+          console.log('IF elementWithCartClass');
+          targettedCartOption = elementWithCartClass;
+          return false;
+        }
+      } else {
+        // Outer else
+        console.log('Alternative Button Element Found:', element);
+      }
+    });
+    
+    console.log("targettedCartOption :", targettedCartOption);
+    return targettedCartOption;
+  }
+
+
+  // // Function to add event listener and handle onClick
+  // function clonedButtonRendering() {
+  //     if(!clonedButton && targeted_CART_ADD_BUTTON) {
+  //         clonedButton = targeted_CART_ADD_BUTTON.cloneNode(true);
+  //     }
+  //     if (clonedButton) {
+  //         targeted_CART_ADD_BUTTON.replaceWith(clonedButton);
+  //         $(clonedButton).on('click', function (event) {
+  //             if (makeItOutToInputData || specialInstructionsInputData) {
+  //                 console.log("makeItOutToInputData 11", makeItOutToInputData);
+  //                 console.log("specialInstructionsInputData 11", specialInstructionsInputData);
+  //                 handleCartButtonClick(event, makeItOutToInputData, specialInstructionsInputData);
+  //             } else {
+  //                 console.warn("No Input values Found!");
+  //                 console.log("Restoring Original Button");
+  //                 clonedButton.replaceWith(targeted_CART_ADD_BUTTON);
+  //                 clonedButton = null;
+  //             }
+  //         });
+  //     }
+  // }
+
+  
+  // // Function to add item to cart with properties
+  // function handleCartButtonClick(event, makeItOutTo, specialInstructions) {
+  //     event.preventDefault();    
+  //     event.stopImmediatePropagation();
+  
+  //     // var form = $(this).closest('form');
+  //     const form = $(event.currentTarget).closest('form');
+  //     const formData = form.serializeArray();
+  //     formData.push({ name: 'properties[Make It Out To]', value: makeItOutTo });
+  //     formData.push({ name: 'properties[Special Instructions]', value: specialInstructions });
+  
+  //     $.ajax({
+  //         type: 'POST',
+  //         url: '/cart/add.js',
+  //         data: $.param(formData),
+  //         dataType: 'json',
+  //         contentType: 'application/x-www-form-urlencoded',
+  //         success: function (response) {
+  //             console.log('Add to Cart Success!');
+  //             window.location.href = '/cart';
+  //         },
+  //         error: function (xhr, status, error) {
+  //             console.error('Add to Cart Error:', error);
+  //             console.log('Response:', xhr.responseText);
+  //         }
+  //     });
+  // };
+
+</script>

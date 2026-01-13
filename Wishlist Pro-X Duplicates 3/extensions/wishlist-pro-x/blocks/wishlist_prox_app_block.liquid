@@ -1,0 +1,74 @@
+{% assign main_product = product %}
+{% render 'wishlist-productButton', product: main_product %}
+
+{% schema %}
+  {
+    "name": "Wishlist Product Button",
+    "target": "section",
+    "settings": [
+      {
+        "type": "color",
+        "id": "button_bg",
+        "label": "Button Background Color",
+        "default": "#121212"
+      },
+      {
+        "type": "color",
+        "id": "button_text_color",
+        "label": "Button Text Color",
+        "default": "#FFFFFF"
+      },
+      {
+        "type": "range",
+        "id": "button_width",
+        "label": "Button Width (px)",
+        "min": 50,
+        "max": 400,
+        "step": 10,
+        "default": 300
+      },
+      {
+        "type": "range",
+        "id": "button_height",
+        "label": "Button Height (px)",
+        "min": 30,
+        "max": 100,
+        "step": 5,
+        "default": 50
+      },
+      {
+        "type": "text",
+        "id": "wishlist_text_default",
+        "label": "Text Before Adding to Wishlist",
+        "default": "Add to Wishlist"
+      },
+      {
+        "type": "text",
+        "id": "wishlist_text_added",
+        "label": "Text After Added to Wishlist",
+        "default": "Added to Wishlist"
+      },
+      {
+        "type": "color",
+        "id": "heart_color",
+        "label": "Heart Icon Color",
+        "default": "#F41515"
+      },
+      {
+        "type": "color",
+        "id": "button_border_color",
+        "label": "Button Border Color",
+        "default": "#000000"
+      },
+      {
+        "type": "range",
+        "id": "button_border_width",
+        "label": "Border Width (px)",
+        "min": 0,
+        "max": 5,
+        "step": 1,
+        "default": 1
+      },
+    ]
+  }
+{% endschema %}

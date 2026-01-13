@@ -1,0 +1,38 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+client_id = "23c3852b2ee01562863c6d9d8e1fd123"
+name = "New-Streamily-Autographs"
+handle = "new-streamily-autographs"
+application_url = "https://streamily-autographs-payment-app.fly.dev"
+embedded = true
+
+[build]
+include_config_on_deploy = true
+dev_store_url = "hydrogen-devstore.myshopify.com"
+automatically_update_urls_on_dev = true
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "read_orders,write_orders,read_products,write_products,read_inventory,write_inventory,read_themes,write_themes,read_publications,write_publications, read_product_listings"
+
+[webhooks]
+api_version = "2024-10"
+
+  [[webhooks.subscriptions]]
+  topics = [ "app/uninstalled" ]
+  uri = "/webhooks/app/uninstalled"
+
+[auth]
+redirect_urls = [
+  "https://streamily-autographs-payment-app.fly.dev/auth/callback",
+  "https://streamily-autographs-payment-app.fly.dev/auth/shopify/callback",
+  "https://streamily-autographs-payment-app.fly.dev/api/auth/callback"
+]
+
+[app_proxy]
+url = "https://streamily-autographs-payment-app.fly.dev/app/new-streamily-autographs"
+subpath = "streamily-autograph-app-proxy"
+prefix = "apps"
+
+[pos]
+embedded = false

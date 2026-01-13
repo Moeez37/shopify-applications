@@ -1,0 +1,38 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+client_id = "c42f26ad427e4f7f70be8ccadcaea672"
+application_url = "https://trailers-up-backgrounds-alignment.trycloudflare.com"
+embedded = true
+name = "New-Streamily-Autographs-Dev"
+handle = "new-streamily-autographs-dev"
+
+[build]
+include_config_on_deploy = true
+dev_store_url = "hydrogen-devstore.myshopify.com"
+automatically_update_urls_on_dev = true
+
+[webhooks]
+api_version = "2024-10"
+
+  [[webhooks.subscriptions]]
+  topics = [ "app/uninstalled" ]
+  uri = "/webhooks/app/uninstalled"
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "read_orders,write_orders,read_products,write_products,read_inventory,write_inventory,read_themes,write_themes,read_publications,write_publications, read_product_listings"
+
+[auth]
+redirect_urls = [
+  "https://trailers-up-backgrounds-alignment.trycloudflare.com/auth/callback",
+  "https://trailers-up-backgrounds-alignment.trycloudflare.com/auth/shopify/callback",
+  "https://trailers-up-backgrounds-alignment.trycloudflare.com/api/auth/callback"
+]
+
+[app_proxy]
+url = "https://trailers-up-backgrounds-alignment.trycloudflare.com/app/new-streamily-autographs-dev"
+subpath = "streamily-autograph-app-dev-proxy"
+prefix = "apps"
+
+[pos]
+embedded = false

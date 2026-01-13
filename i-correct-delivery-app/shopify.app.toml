@@ -1,0 +1,34 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+client_id = "75e6513cfb345b7281899a320ca8c3a3"
+name = "i-correct-delivery-app"
+handle = "i-correct-delivery-app"
+application_url = "https://baseball-crime-locate-asian.trycloudflare.com"
+embedded = true
+
+[build]
+automatically_update_urls_on_dev = true
+dev_store_url = "hydrogen-devstore.myshopify.com"
+include_config_on_deploy = true
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "read_customers,read_inventory,read_orders,read_products,read_themes,write_customers,write_inventory,write_orders,write_products,write_themes"
+
+[auth]
+redirect_urls = [
+  "https://baseball-crime-locate-asian.trycloudflare.com/auth/callback",
+  "https://baseball-crime-locate-asian.trycloudflare.com/auth/shopify/callback",
+  "https://baseball-crime-locate-asian.trycloudflare.com/api/auth/callback"
+]
+
+[webhooks]
+api_version = "2024-07"
+
+[app_proxy]
+url = "https://baseball-crime-locate-asian.trycloudflare.com"
+subpath = "proxy"
+prefix = "apps"
+
+[pos]
+embedded = false

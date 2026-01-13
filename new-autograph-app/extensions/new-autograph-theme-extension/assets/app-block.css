@@ -1,0 +1,105 @@
+.app-block-unique-CustomId {
+    margin: 10px 0;
+}
+.product-form__custom-fields {
+    font-weight: bolder;
+    margin: 18px 5px;
+}
+.form__custom__label {
+    color: black;
+    font-size: 18px;
+}
+.block-toggle-prize-div {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+.toggle-block-switcher {
+    position: relative;
+    display: inline-block;
+    width: 56px;
+    height: 30px; 
+}
+.appBlockCheckbox-toggleSlider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--unchecked-color, #ccc);
+    transition: .4s;
+    border-radius: 34px; 
+}
+.appBlockCheckbox-toggleSlider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 5px; 
+    bottom: 1.5px; 
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+.product-form__block-checkbox {
+    margin-left: 10px !important;
+}
+.product-form__block-checkbox:checked + .appBlockCheckbox-toggleSlider {
+    background-color: var(--checked-color, #212121); 
+}
+.product-form__block-checkbox:checked + .appBlockCheckbox-toggleSlider:before {
+    transform: translateX(20px); 
+}
+.product-form__block-checkbox:focus {
+    box-shadow: 0 0 2px #00000075;
+    outline: none;
+}
+.price-IsNot-Everything {
+    color: black;
+    font-size: 16px;
+}
+.auto-disabled {
+    cursor: not-allowed;
+    opacity: .5;
+}
+.auto-delete-disabled {
+    pointer-events: none;
+    opacity: .5;
+}
+.autograph-app-block-error-message {
+    display: none;
+    color: #e63737;
+    background-color: #ffe6e8;
+    margin: 1rem 0;
+    padding: 1rem;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.25;
+    border-radius: 0.75rem;
+}
+.autograph_app_block_loading_spinner,
+.autograph_app_block_loading_spinner:after {
+    box-sizing: border-box;
+}
+.autograph_app_block_loading_spinner {
+    display: none;
+    width: 20px;
+    height: 20px;
+}
+.autograph_app_block_loading_spinner:after {
+    content: " ";
+    display: block;
+    width: 20px;
+    height: 20px;
+    margin-left: 20px;
+    border-radius: 50%;
+    border: 6.4px solid currentColor;
+    border-color: currentColor transparent currentColor transparent;
+    animation: autograph_app_block_loading_spinner 1.2s linear infinite;
+}
+@keyframes autograph_app_block_loading_spinner {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

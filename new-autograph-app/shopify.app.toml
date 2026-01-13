@@ -1,0 +1,38 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+client_id = "d343ee0a650d4827af68fae057b398ba"
+name = "Streamily-Autograph"
+handle = "new-autograph-app"
+application_url = "https://isp-flat-cindy-hay.trycloudflare.com"
+embedded = true
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "read_orders,write_orders,read_products,write_products,read_inventory,write_inventory,read_themes,write_themes,read_publications,write_publications, read_product_listings"
+
+[auth]
+redirect_urls = [
+  "https://isp-flat-cindy-hay.trycloudflare.com/auth/callback",
+  "https://isp-flat-cindy-hay.trycloudflare.com/auth/shopify/callback",
+  "https://isp-flat-cindy-hay.trycloudflare.com/api/auth/callback"
+]
+
+[webhooks]
+api_version = "2024-10"
+
+  [[webhooks.subscriptions]]
+  topics = [ "app/uninstalled" ]
+  uri = "/webhooks/app/uninstalled"
+
+[app_proxy]
+url = "https://isp-flat-cindy-hay.trycloudflare.com/app/streamily-autograph-app-proxy"
+subpath = "streamily-autograph-app-proxy"
+prefix = "apps"
+
+[pos]
+embedded = false
+
+[build]
+include_config_on_deploy = true
+dev_store_url = "hydrogen-devstore.myshopify.com"
+automatically_update_urls_on_dev = true

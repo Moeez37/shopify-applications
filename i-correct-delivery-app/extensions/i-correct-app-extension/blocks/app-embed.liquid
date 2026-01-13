@@ -1,0 +1,105 @@
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        console.log('APP EMBED CALLED');
+
+        const appUrl = 'https://assurance-expanded-awesome-mu.trycloudflare.com/app/proxy';
+        // const appUrl = 'https://hydrogen-devstore.myshopify.com/apps/proxy-1';
+
+        // Product data from Liquid
+        const productData = {{ product | json }};
+        console.log('Product Data:', productData);
+
+        const addToCartButton = document.querySelector('.product-form__buttons');
+        console.log('addToCartButton:', addToCartButton);
+
+        if(addToCartButton){
+            addToCartButton.addEventListener('click', async function(event) {
+                event.preventDefault();
+                console.log('Add to Cart button was clicked!');
+                
+                // fetch(appUrl, {
+                //     method: 'POST',
+                //     headers: {
+                //         'Content-Type': 'application/json',
+                //     },
+                //      body: JSON.stringify({
+                //         'body': 'hello from app embed',
+                //     }),
+                // });
+
+                fetch(appUrl, {
+                    method: 'POST',
+                    // redirect: 'manual',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        // 'Access-Control-Allow-Origin': '*',
+                    },
+                    body: JSON.stringify({
+                        product: productData,
+                        message: 'hello from app embed',
+                    }),
+                }).then(response => {
+                    console.log('Response:', response);
+                // }).then(data => {
+                //     console.log('data', data);
+                }).catch(error => {
+                    console.error('Error:', error);
+                });
+
+                console.log('AFTER FETCH');
+            });
+        }
+
+
+        // window.fetch = async function () {
+        //     const response = await originalFetch.apply(this, arguments);
+
+        //     // fetch(appUrl, {
+        //     //     method: 'POST',
+        //     //     headers: {
+        //     //         'Content-Type': 'application/json',
+        //     //     },
+        //     //      body: JSON.stringify({
+        //     //         'body': 'hello from app embed',
+        //     //     }),
+        //     // });
+        //     // console.log('AFTER FETCH');
+
+
+        //     // Detecting Add to Cart requests
+        //     // if (arguments[0].includes('/cart/add.js')) {
+        //     //     console.log('IN IF =========== :');
+                
+        //     //     const data = await response.json();
+        //     //     console.log('data:', data);
+
+        //     //     // Trigger your custom app event or API
+        //     //     // fetch('https://your-app-url.com/api/handle-cart-add', {
+        //     //     fetch('/middleware/triggerApp', {
+        //     //         method: 'POST',
+        //     //         headers: {
+        //     //             'Content-Type': 'application/json',
+        //     //         },
+        //     //         body: JSON.stringify({
+        //     //             product_id: data.items[0].id,
+        //     //             quantity: data.items[0].quantity,
+        //     //         }),
+        //     //     });
+        //     // }
+
+        //     return response;
+        // };
+    });
+</script>
+
+
+
+{% schema %}
+{
+    "name": "iCorrect-App",
+    "target": "body",
+    "settings": [ ]
+}
+{% endschema %}

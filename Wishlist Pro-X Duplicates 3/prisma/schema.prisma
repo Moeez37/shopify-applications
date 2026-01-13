@@ -1,0 +1,55 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:dev.sqlite"
+}
+
+model Session {
+  id            String    @id
+  shop          String
+  state         String
+  isOnline      Boolean   @default(false)
+  scope         String?
+  expires       DateTime?
+  accessToken   String
+  userId        BigInt?
+  firstName     String?
+  lastName      String?
+  email         String?
+  accountOwner  Boolean   @default(false)
+  locale        String?
+  collaborator  Boolean?  @default(false)
+  emailVerified Boolean?  @default(false)
+}
+
+model WishlistSettings {
+  id          String  @id
+  shop        String
+  beforeLabel String?
+  afterLabel  String?
+}
+
+model WishlistData {
+  id                Int      @id @default(autoincrement())
+  shop              String?
+  productId         String   @unique
+  add_wl_count      Int?     @default(0)
+  remove_wl_count   Int?     @default(0)
+  add_to_cart       Int?     @default(0)
+  remove_from_cart  Int?     @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model ShareableWishlistData {
+  id                  String  @id @default(uuid())  // Unique ID for the wishlist data
+  shareableWishlistId String  @unique // Unique identifier for the shareable wishlist
+  shop                String   // The shop associated with the wishlist
+  withlistItems       String   // This stores the wishlist items as a JSON string
+  createdAt           DateTime @default(now()) // Timestamp when the record is created
+  updatedAt           DateTime @updatedAt // Timestamp when the record is updated
+}
+
